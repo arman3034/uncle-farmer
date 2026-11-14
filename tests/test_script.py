@@ -629,6 +629,12 @@ def test_check_reports_bad_scripts() -> None:
     assert msg and "unknown command" in msg and "line 1" in msg
 
 
+def test_login_is_a_first_line_directive() -> None:
+    assert S.login_target('login "Hero - S1"\nfarm minutes=1') == "Hero - S1"
+    assert S.check('farm minutes=1\nlogin "Hero - S1"') == "line 2: login must be the first command in a script"
+    assert S.check('sub again\nlogin Hero\nend') == "line 2: login must be the first command in a script"
+
+
 def test_check_reports_the_offending_line() -> None:
     msg = S.check("wait 1\nwait two")
     assert msg and "line 2" in msg

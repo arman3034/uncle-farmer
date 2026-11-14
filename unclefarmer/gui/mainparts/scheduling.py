@@ -57,14 +57,24 @@ class SchedulingMixin(FrameParts):
         if item not in self.scheduled_items():
             return schedule.FAILED, _("the {kind} {name} doesn't exist any more",
                                       kind=_("plan") if item[0] == "plan" else _("script"), name=item[1])
-        who = s["character"].strip().lower()
-        pid = next((g[0] for g in self.games if settings.profile_name(g[1]).strip().lower() == who), None)
+        who = s["character"].strip().casefold()
+        candidates = [profile for profile, _email in settings.automatic_login_profiles()
+                      if who in (profile.casefold(), settings.profile_display(profile).casefold(),
+                                 settings.profile_name(profile).casefold())]
+        target = candidates[0] if len(candidates) == 1 else None
+        if target:
+            pid, waiting = self.automatic_login_window(target)
+            if pid is None:
+                return schedule.WAIT, waiting
+        else:                                    # older schedules stored a plain character name
+            pid = next((g[0] for g in self.games if settings.profile_name(g[1]).casefold() == who), None)
         if pid is None:
-            return schedule.WAIT, _("{who} isn't logged in to a game that Uncle Farmer sees", who=s["character"])
+            return schedule.WAIT, _("{who} isn't logged in to one available game", who=s["character"])
         busy = self.runs.get(pid)
         if busy is not None:
             return schedule.WAIT, _("{who}'s game is busy with {what}", who=s["character"], what=busy.title)
-        answer = self.start(pid, item, remote=True) or ""
+        answer = (self.start(pid, item, remote=True, profile=target) if target else
+                  self.start(pid, item, remote=True)) or ""
         run = self.runs.get(pid)
         if run is None or run.title != item[1]:
             return schedule.FAILED, answer or _("it didn't start")
@@ -95,6 +105,7 @@ class SchedulingMixin(FrameParts):
             self.say(_("Couldn't save the schedules: {err}", err=e))
 
     def open_schedules(self) -> None:
-        names = sorted({settings.profile_name(g[1]) for g in self.games if g[1]} | set(stats.characters()), key=str.lower)
+        names = sorted({profile for profile, _email in settings.automatic_login_profiles()} |
+                       {g[1] for g in self.games if g[1]} | set(stats.characters()), key=settings.profile_display)
         with SchedulesDialog(self, self.scheduler, self.scheduled_items(), self.item_label, names, self.now) as d:
             d.ShowModal()

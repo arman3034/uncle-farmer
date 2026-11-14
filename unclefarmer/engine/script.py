@@ -43,6 +43,7 @@ One command per line; `#` starts a comment. Blocks end with `end`.
     sell <item> [count]              sell to the NPC that buys it (all, if no count)
     withdraw <count> <item>          take out of the storehouse
     deposit <item> [count]           put into the storehouse (all, if no count)
+    login [character]                select this saved character before the script runs
     walk <x> <y>                     walk to a cell on the current map
     farm [map=<map>] [minutes=N] [kills=N] [patrol=random|full|quick] [area=x1,y1,x2,y2]
          [only=<names>] [skip=<names>] [elites=fight|avoid] [until=<condition>]
@@ -106,7 +107,7 @@ def _at(rest: str, n: int):
 
 BLOCKS = ("repeat", "while", "if", "sub", "on_stop")
 END_WORDS = ("start", "safe", "hearthstone", "here")
-COMMANDS = ("end_at", "keep_drop", "travel", "go", "talk", "choose", "visit", "restock", "gem_maker", "enhance", "chores", "gather", "lose_xp", "dungeon", "sell_collection", "sell_shards", "clean_bag", "update_shard_prices", "store_items", "survey", "follow", "come", "buy", "sell", "withdraw", "deposit", "walk", "farm", "key", "hold", "wait", "say", "set", "heal", "hearthstone",
+COMMANDS = ("login", "end_at", "keep_drop", "travel", "go", "talk", "choose", "visit", "restock", "gem_maker", "enhance", "chores", "gather", "lose_xp", "dungeon", "sell_collection", "sell_shards", "clean_bag", "update_shard_prices", "store_items", "survey", "follow", "come", "buy", "sell", "withdraw", "deposit", "walk", "farm", "key", "hold", "wait", "say", "set", "heal", "hearthstone",
             "stop_when", "stop", "break", "call", "elif", "else", "end",
             "sound_watch", "sound_mute", "sound_wait") + BLOCKS
 FARM_OPTIONS = ("map", "minutes", "kills", "patrol", "area", "only", "skip", "elites", "until")
@@ -378,8 +379,14 @@ def _parse_command(stack: list[Node], word: str, rest: str, n: int):
 def _check_script(main: list[Node], subs: dict[str, list[Node]], on_stop: list[Node]):
     """What can only be checked once the whole script is read: calls, recursion, breaks."""
     _check_calls(main, subs)
+    for node in main[1:]:
+        if node.kind == "login":
+            raise ScriptError(node.line, _("login must be the first command in a script"))
     for body in list(subs.values()) + [on_stop]:
         _check_calls(body, subs)
+        for node in body:
+            if node.kind == "login":
+                raise ScriptError(node.line, _("login must be the first command in a script"))
     _check_recursion(subs)
     _check_breaks(main, False)
     for body in list(subs.values()) + [on_stop]:
@@ -763,6 +770,13 @@ def _prep_say(node: Node, rest: str, n: int):
                           for i, m in enumerate(re.split(r"\{([^}]*)\}", rest))]
 
 
+def _prep_login(node: Node, rest: str, n: int):
+    words = _split(rest, n)
+    if len(words) > 1:
+        raise ScriptError(n, _("write it as: login  or  login <character>"))
+    node.opts["character"] = words[0] if words else None
+
+
 def _prep_sound(node: Node, rest: str, n: int):
     timeout = 30.0
     parts = rest.rsplit(" timeout=", 1) if node.kind == "sound_wait" else [rest]
@@ -780,6 +794,7 @@ def _prep_sound(node: Node, rest: str, n: int):
 
 
 PREPARE = {
+    "login": _prep_login,
     "while": _prep_condition, "if": _prep_condition, "repeat": _prep_repeat, "set": _prep_set,
     "stop_when": _prep_stop_when, "end_at": _prep_end_at, "keep_drop": _prep_keep_drop, "travel": _prep_travel, "go": _prep_go,
     "follow": _prep_player, "come": _prep_player, "talk": _prep_talk, "survey": _prep_survey,
@@ -1205,3 +1220,9 @@ def check(text: str) -> str | None:
         return None
     except ScriptError as e:
         return str(e)
+
+
+def login_target(text: str) -> str | None:
+    """The optional character named by a script's first `login` line."""
+    main, _subs, _on_stop = parse(text)
+    return main[0].opts["character"] if main and main[0].kind == "login" else None

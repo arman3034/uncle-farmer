@@ -49,6 +49,34 @@ class FakeLink:
         self.closed = True
 
 
+class LoginLink(FakeLink):
+    """A saved-login exchange whose status advances without waiting for real time."""
+
+    def __init__(self, states: list[dict[str, Any]]) -> None:
+        super().__init__()
+        self.states = list(states)
+
+    def json(self, line: str) -> Any:
+        self.asked.append(line)
+        if line.startswith("autologin "):
+            return {"ok": True}
+        if line == "autologinstatus":
+            return self.states.pop(0)
+        return self.snap
+
+
+class NeverStops:
+    """The login poll's stop token for a deterministic unit test."""
+
+    def wait(self, timeout: float) -> bool:
+        return False
+
+
+def saved_login_profile(character: str) -> dict[str, Any]:
+    """The only profile field automatic login needs before it reaches the game."""
+    return {"login_email": "hero@example.com"}
+
+
 class FakeBot:
     def __init__(self, link: FakeLink, profile: dict[str, Any], log: Callable[..., Any], stop_event: Event, clock: Clock | None=None) -> None:
         self.a = link
@@ -243,6 +271,33 @@ def test_stop_sets_the_stop_event() -> None:
     assert not run.stop_event.is_set()
     run.stop()
     assert run.stop_event.is_set()
+
+
+def test_saved_login_waits_for_a_confirmed_world(monkeypatch: pytest.MonkeyPatch) -> None:
+    profile = settings.character_profile("Hero", 7, "S1")
+    run = R.Run("", "", 1, lambda line, speak, run: None, lambda reason, run: None)
+    run.profile, run.stop_event = profile, NeverStops()  # type: ignore[assignment]
+    monkeypatch.setattr(settings, "load_profile", saved_login_profile)
+    link = LoginLink([{"ok": True, "running": True, "status": "loading character"},
+                      {"ok": True, "running": False, "status": "ready"}])
+    link.reply["arm"] = "armed"
+
+    run._login_saved_character(as_kind(R.AgentLink, link), R.AGENT_LOGIN)
+
+    assert link.sent == ["arm"]
+    assert link.asked == ["autologin hero@example.com 7", "autologinstatus", "autologinstatus"]
+
+
+def test_saved_login_refuses_to_start_without_a_confirmed_world(monkeypatch: pytest.MonkeyPatch) -> None:
+    profile = settings.character_profile("Hero", 7, "S1")
+    run = R.Run("", "", 1, lambda line, speak, run: None, lambda reason, run: None)
+    run.profile, run.stop_event = profile, NeverStops()  # type: ignore[assignment]
+    monkeypatch.setattr(settings, "load_profile", saved_login_profile)
+    link = LoginLink([{"ok": True, "running": False, "status": "timed out loading character"}])
+    link.reply["arm"] = "armed"
+
+    with pytest.raises(R.Stopped, match="timed out loading character"):
+        run._login_saved_character(as_kind(R.AgentLink, link), R.AGENT_LOGIN)
 
 
 # ---------------------------------------------------------------- logging

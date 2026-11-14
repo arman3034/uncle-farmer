@@ -57,20 +57,33 @@ def import_destinations(source: str, profiles: list[str]) -> tuple[list[str], st
 
 class EditingMixin(FrameParts):
     # ------------------------------------------------------------ more game clients
+    def open_client_for_login(self) -> str | None:
+        """Start a client for automatic login, or return the reason it cannot be started.
+
+        This deliberately has no dialog: schedules and scripts use the same path as a manual run
+        without unexpectedly moving focus to Settings.
+        """
+        folder = self.remember_game_folder()
+        if not gameinstall.is_game_folder(folder) or gameinstall.status(folder) != "installed":
+            return _("The agent isn't installed in the game yet. Install it in Settings first.")
+        try:
+            subprocess.Popen([os.path.join(folder, "mw.exe")], cwd=folder, close_fds=True,
+                             creationflags=getattr(subprocess, "DETACHED_PROCESS", 0x8))
+        except OSError as e:
+            return _("Couldn't start the game: {err}", err=e)
+        return None
+
     def open_client(self) -> None:
-        """Start one more Mist World. The agent in the game folder is what lets it run beside the
-        others, so it has to be installed; and only clients started since then have it."""
+        """Start one more Mist World from the menu, offering Setup when it is needed."""
         folder = self.remember_game_folder()
         if not gameinstall.is_game_folder(folder) or gameinstall.status(folder) != "installed":
             if ask(self, _("The agent isn't installed in the game yet, and without it a second game closes "
                            "right after it starts. Open Settings now?")):
                 self.open_setup()
             return
-        try:
-            subprocess.Popen([os.path.join(folder, "mw.exe")], cwd=folder, close_fds=True,
-                             creationflags=getattr(subprocess, "DETACHED_PROCESS", 0x8))
-        except OSError as e:
-            error(self, _("Couldn't start the game: {err}", err=e))
+        problem = self.open_client_for_login()
+        if problem:
+            error(self, problem)
             return
         self.say(_("Opening another game window. Log in, then choose it in the Games list."))
         wx.CallLater(8000, self.refresh_games)

@@ -182,6 +182,8 @@ def games() -> list[tuple[int, str | None, str | None]]:
                     name = settings.character_profile(me["name"], me.get("id"), server_name(a))
                     where = s["map"]["name"]
         except (AgentError, OSError, ValueError):
-            pass
+            # A crashed game's port file can outlive it; later Windows PID reuse made those stale
+            # records look alive and produced phantom "Not logged in" rows.
+            continue
         out.append((pid, name, where))
     return out

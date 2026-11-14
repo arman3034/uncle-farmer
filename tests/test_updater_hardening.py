@@ -717,3 +717,51 @@ def test_required_dll_cannot_be_a_directory(app: Path, tmp_path: Path) -> None:
     (src / "python3314.dll").mkdir()
     with pytest.raises(updater.UpdateError, match="required entry"):
         updater.apply(str(app), str(src), lambda text: None)
+
+
+LAUNCHER = b"MZ native front door " + updater.LAUNCHER_MARKER
+
+
+def legacy_and_release(app: Path, tmp_path: Path) -> Path:
+    """A copy from before the two-exe layout (its Nuitka app is UncleFarmer.exe) and a new release."""
+    flat(app, "old")
+    (app / updater.recovery.PAYLOAD).unlink()
+    (app / updater.EXE).write_bytes(b"old nuitka app")
+    src = flat(tmp_path / "release")
+    (src / updater.EXE).write_bytes(LAUNCHER)
+    return src
+
+
+def test_an_older_copy_gets_the_native_front_door_once(app: Path, tmp_path: Path) -> None:
+    src = legacy_and_release(app, tmp_path)
+    updater.apply(str(app), str(src), lambda text: None)
+    assert (app / updater.EXE).read_bytes() == LAUNCHER
+    assert (app / updater.recovery.PAYLOAD).read_bytes() == b"new"
+    assert not list((app / updater.recovery.HERE).glob("launcher-*.tmp"))
+
+
+def test_an_installed_front_door_is_never_replaced(app: Path, tmp_path: Path) -> None:
+    flat(app, "old")
+    mine = b"MZ an older front door " + updater.LAUNCHER_MARKER
+    (app / updater.EXE).write_bytes(mine)
+    src = flat(tmp_path / "release")
+    (src / updater.EXE).write_bytes(LAUNCHER)
+    updater.apply(str(app), str(src), lambda text: None)
+    assert (app / updater.EXE).read_bytes() == mine
+
+
+def test_a_rolled_back_update_keeps_the_old_app_executable(app: Path, tmp_path: Path,
+                                                           monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without the commit there is no UncleFarmerApp.exe, so a front door could start nothing."""
+    src = legacy_and_release(app, tmp_path)
+    def fail(*args: object, **kwargs: object) -> None:
+        raise updater.UpdateError("injected")
+    monkeypatch.setattr(updater, "_install_tree", fail)
+    with pytest.raises(updater.UpdateError):
+        updater.apply(str(app), str(src), lambda text: None)
+    assert (app / updater.EXE).read_bytes() == b"old nuitka app"
+
+
+def test_the_built_front_door_carries_the_marker() -> None:
+    source = (Path(updater.__file__).parent / "native" / "bootstrap.c").read_text(encoding="utf-8")
+    assert '"%s"' % updater.LAUNCHER_MARKER.decode() in source and "__attribute__((used))" in source

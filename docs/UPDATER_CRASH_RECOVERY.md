@@ -44,6 +44,15 @@ cannot retroactively gain crash protection during the initial migration to this
 packaging. Launcher protocol changes need a deliberate compatible migration;
 ordinary updates do not replace the stable launcher or rescue runtime in place.
 
+The one migration that does happen: a copy from before this packaging has its
+Nuitka app as `UncleFarmer.exe`. Its old updater starts the new release's copier,
+and once that transaction is `COMMITTED` the copier replaces the old
+`UncleFarmer.exe` with the release's launcher. It does this with one same-volume
+rename, and only when the installed file lacks `updater.LAUNCHER_MARKER`, which
+`bootstrap.c` embeds. A rolled-back transaction keeps the old exe, because that
+copy has no `UncleFarmerApp.exe` for a launcher to start. Without this step, the
+old copy would keep starting its old code.
+
 `build_exe.py` compiles the native launcher before starting the expensive Nuitka
 build, using the repository's existing GCC/MinGW or Zig C compiler discovery.
 A missing compatible C toolchain is a build error. A source checkout does not

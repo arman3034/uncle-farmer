@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Callable, Sequence
+from typing import Any, cast
 
 import wx
 
-from .. import schedule
+from .. import schedule, settings
 from ..i18n import _
 from .common import (ContextAction, Dialog, Form, ask, buttons, error, first_selected, labeled, ok_cancel,
                      opens, pick, popup_actions, select_row, show_text)
@@ -50,6 +51,7 @@ class EditScheduleDialog(Dialog):
                  characters: Sequence[str], now: Now, s: schedule.Schedule | None = None) -> None:
         super().__init__(parent, title=_("Edit schedule") if s else _("New schedule"))
         self.items, self.now = list(items), now
+        self.character_keys = list(characters)
         self.fields: schedule.Schedule = {}
         start = now() + dt.timedelta(hours=1)
         s = s or {"item": "", "character": characters[0] if characters else "", "repeat": schedule.DAILY,
@@ -58,8 +60,12 @@ class EditScheduleDialog(Dialog):
         f = Form(self)
         saved = tuple(str(s.get("item", "")).partition(":")[::2])
         self.what = f.choice(_("&Plan or script:"), [label(i) for i in self.items], pick(self.items, saved))
-        self.who = f.add(_("&Character:"), lambda p: wx.ComboBox(p, value=str(s.get("character") or ""),
-                                                                    choices=list(characters)))
+        current = str(s.get("character") or "")
+        labels = [settings.profile_display(character) for character in self.character_keys]
+        selected = pick(self.character_keys, current)
+        if selected < 0:
+            selected = pick(labels, current)
+        self.who = f.choice(_("&Character:"), labels, selected)
         self.repeat = f.choice(_("&Repeat:"), [_(schedule.REPEAT_NAMES[r]) for r in schedule.REPEATS],
                                pick(list(schedule.REPEATS), s.get("repeat"), 1))
         self.date = f.text(_("&Date (year-month-day):"), s.get("date") or start.strftime("%Y-%m-%d"))
@@ -84,9 +90,11 @@ class EditScheduleDialog(Dialog):
         i = self.what.GetSelection()
         if not 0 <= i < len(self.items):
             raise ValueError(_("Choose a plan or script to run."))
-        who = self.who.GetValue().strip()
+        keys = getattr(self, "character_keys", ())
+        selection = self.who.GetSelection()
+        who = keys[selection] if 0 <= selection < len(keys) else cast(Any, self.who).GetValue().strip()
         if not who:
-            raise ValueError(_("Write the character's name: the game it is logged in to runs it."))
+            raise ValueError(_("Choose a character."))
         repeat = schedule.REPEATS[self.repeat.GetSelection()]
         hour, minute = schedule.parse_time(self.time.GetValue())
         fields: schedule.Schedule = {"item": "%s:%s" % self.items[i], "character": who, "repeat": repeat,
@@ -176,7 +184,7 @@ class SchedulesDialog(Dialog):
         now = self.now()
         for i, s in enumerate(self.scheduler.items):
             self.list.InsertItem(i, self.label(schedule.item_of(s)))
-            self.list.SetItem(i, 1, s["character"])
+            self.list.SetItem(i, 1, settings.profile_display(s["character"]))
             self.list.SetItem(i, 2, schedule.describe_when(s))
             self.list.SetItem(i, 3, when_next(s, now))
             self.list.SetItem(i, 4, _("on") if s.get("enabled") else _("off"))

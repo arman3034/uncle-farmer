@@ -32,7 +32,7 @@ MARKER = "unclefarmer-agent.jar"
 LEGACY = ("mwfarmer-agent.jar",)
 # The agent version this copy ships (StateServer.VERSION in agent/src; a test keeps them equal).
 # A running game whose agent answers an older one loaded it before this copy was installed.
-AGENT_VERSION = 63
+AGENT_VERSION = 67
 CLOSE_WAIT = 20.0       # seconds a game gets to close through its own close button before it is ended
 
 

@@ -11,6 +11,10 @@ And here's the good news: **you don't need to be a programmer to write one.** If
 We'll start with something small and gradually build up to more powerful scripts. Every example in this guide can be copied directly into the script editor, so feel free to experiment as you learn.
 
 
+## Sign in before a script
+
+Put `login` as the first command in a scheduled script: the schedule's selected character supplies the identity. `login "Character - S1"` is also available when the script itself should name the character. If that character is already in the selected game, Uncle Farmer uses it. Otherwise it uses one signed-out game; when there is none, it opens one game window, waits for its agent, then uses the saved sign-in and the real character list to select the matching character ID. The address is learned when the character is first seen and is shown read-only in Character Settings, Overview; no password is stored. The command stops safely if the character has not been seen before, its saved account is unavailable, or more than one game is signed out.
+
 ## 1. Your first script
 
 Let's get your first script running! We'll start with a simple task: travel to a farming map, fight monsters for ten minutes, and then return home.

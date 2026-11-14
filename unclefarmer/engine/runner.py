@@ -39,6 +39,7 @@ AGENT_SHEET = 43    # from here `ask sheet` reads the character sheet without th
 AGENT_SLOTS = 46    # from here `slot <n>` presses an attack key through the game's own key method, no keyboard
                     # (45 had it too, but never let the key go: the game then refused every walk)
 AGENT_SERVER = 58   # from here `server` identifies the live S1/S2 route without a game packet
+AGENT_LOGIN = 67    # from here automatic login includes the companion game connection
 
 def _write_log(line: str) -> None:
     """Every run line to today's log; a broken log must never stop a run (applog says so once)."""
@@ -166,6 +167,9 @@ class Run(threading.Thread):
             raise Stopped(_("the game is running an older Uncle Farmer agent - restart Mist World so it loads "
                             "the new one"))
         snap = link.json("mem state" if agent >= AGENT_STATE else "mem")
+        if not snap.get("ok") and self.profile:
+            self._login_saved_character(link, agent)
+            snap = link.json("mem state" if agent >= AGENT_STATE else "mem")
         if not snap.get("ok"):
             raise Stopped(snap.get("error") or _("log in to a character first"))
         character = self.character = snap["self"]["name"]
@@ -183,6 +187,32 @@ class Run(threading.Thread):
         bot = self._make_bot(link, profile, agent, guard, day_end, app)
         self._set_up(bot, snap, profile, found, agent, app)
         return bot
+
+    def _login_saved_character(self, link: AgentLink, agent: int) -> None:
+        """Use this plan's saved account, then wait for the requested character to be selected."""
+        if agent < AGENT_LOGIN:
+            raise Stopped(_("the game is running an older Uncle Farmer agent - restart Mist World so it loads "
+                            "the new one"))
+        character = self.profile or ""
+        email = settings.load_profile(character).get("login_email")
+        entity_id = settings.profile_id(character)
+        if not isinstance(email, str) or not email or not entity_id:
+            raise Stopped(_("the plan's character has no saved account. Log in to it once first."))
+        if link.send("arm") != "armed":
+            raise Stopped(_("the game refused the login request"))
+        reply = link.json("autologin %s %s" % (email, entity_id))
+        if not reply.get("ok"):
+            raise Stopped(str(reply.get("error") or _("automatic login could not start")))
+        self.log(_("starting automatic login"), speak=True)
+        while not self.stop_event.wait(0.25):
+            state = link.json("autologinstatus")
+            if state.get("running"):
+                continue
+            if state.get("status") == "ready":
+                self.log(_("automatic login finished"))
+                return
+            raise Stopped(str(state.get("status") or _("automatic login stopped")))
+        raise Stopped(_("stopped by you"))
 
     def _profile(self, link: AgentLink, character: str) -> tuple[dict[str, Any], dict[str, Any]]:
         """Every run starts with a fresh scan: skills, keys, potions, beasts, pets -> the profile (a

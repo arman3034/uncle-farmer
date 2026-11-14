@@ -263,14 +263,14 @@ def test_games_names_every_live_game(monkeypatch: pytest.MonkeyPatch) -> None:
     assert link.games() == [(1, "Hero", "Town"), (2, "Hero", "Town")]
 
 
-def test_games_reports_a_game_that_will_not_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_games_ignores_a_stale_port_record_that_will_not_answer(monkeypatch: pytest.MonkeyPatch) -> None:
     class Bad(StubAgent):
         def json(self, line: str) -> Any:
             raise link.AgentError("closed")
 
     monkeypatch.setattr(link, "agents", stand_in(link.agents, lambda run_dir=None: [(17311, 1, "s")]))
     monkeypatch.setattr(link, "AgentLink", Bad)
-    assert link.games() == [(1, None, None)]
+    assert link.games() == []
 
 
 def test_games_leaves_an_unlogged_in_game_blank(monkeypatch: pytest.MonkeyPatch) -> None:

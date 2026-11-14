@@ -986,6 +986,9 @@ msgid ""
 "Choose &skills from what the game says about them (off: press the attack keys in turn)"
 msgstr ""
 
+msgid "Choose a character."
+msgstr ""
+
 msgid "Choose a city square:"
 msgstr ""
 
@@ -1165,6 +1168,9 @@ msgid "Couldn't import the plan: {err}"
 msgstr ""
 
 msgid "Couldn't import the settings: {err}"
+msgstr ""
+
+msgid "Couldn't open it."
 msgstr ""
 
 msgid "Couldn't open it: {err}"
@@ -3003,6 +3009,9 @@ msgstr ""
 msgid "Save changes to the script?"
 msgstr ""
 
+msgid "Saved account email:"
+msgstr ""
+
 msgid "Saved. It's in the Plans tab as a script."
 msgstr ""
 
@@ -3535,6 +3544,10 @@ msgid ""
 "The agent isn't installed in the game yet, and without it a second game closes right after it starts. Open Settings now?"
 msgstr ""
 
+msgid ""
+"The agent isn't installed in the game yet. Install it in Settings first."
+msgstr ""
+
 msgid "The area is now 40 tiles around you."
 msgstr ""
 
@@ -3690,6 +3703,9 @@ msgstr ""
 msgid "The schedule isn't complete"
 msgstr ""
 
+msgid "The scheduled character and the script's login character are different."
+msgstr ""
+
 msgid ""
 "The script has a mistake:\n"
 "{p}\n"
@@ -3701,6 +3717,9 @@ msgid "The script reads correctly."
 msgstr ""
 
 msgid "The script was saved, but the old file couldn't be removed: {err}"
+msgstr ""
+
+msgid "The script's login character is not a known saved character: {name}"
 msgstr ""
 
 msgid "The sound list must be a list of sound entries."
@@ -4236,9 +4255,6 @@ msgstr ""
 msgid "Would you like to switch to {language}?"
 msgstr ""
 
-msgid "Write the character's name: the game it is logged in to runs it."
-msgstr ""
-
 msgid "X:"
 msgstr ""
 
@@ -4383,6 +4399,15 @@ msgid ""
 msgstr ""
 
 msgid "attacks {how}"
+msgstr ""
+
+msgid "automatic login could not start"
+msgstr ""
+
+msgid "automatic login finished"
+msgstr ""
+
+msgid "automatic login stopped"
 msgstr ""
 
 msgid "avoiding elites"
@@ -5176,6 +5201,9 @@ msgstr ""
 msgid "log in to a character first"
 msgstr ""
 
+msgid "login must be the first command in a script"
+msgstr ""
+
 msgid "looking after {pet}: HP {hp}/{max}"
 msgstr ""
 
@@ -5621,6 +5649,9 @@ msgstr ""
 msgid "open games started without this version's agent: {n}"
 msgstr ""
 
+msgid "opening a game for {name}"
+msgstr ""
+
 msgid "ore"
 msgstr ""
 
@@ -5908,6 +5939,9 @@ msgid ""
 msgstr ""
 
 msgid "started"
+msgstr ""
+
+msgid "starting automatic login"
 msgstr ""
 
 msgid "starting {what} as {name}"
@@ -6279,6 +6313,9 @@ msgid ""
 "the game ran out of memory and stopped working ({where}) - restart Mist World"
 msgstr ""
 
+msgid "the game refused the login request"
+msgstr ""
+
 msgid "the game won't let us hit {name} from here - next one"
 msgstr ""
 
@@ -6371,6 +6408,9 @@ msgid "the pet"
 msgstr ""
 
 msgid "the pet's amiability is {n} but there's no {item} in the bag"
+msgstr ""
+
+msgid "the plan's character has no saved account. Log in to it once first."
 msgstr ""
 
 msgid "the ride from {map} never arrived"
@@ -6685,6 +6725,9 @@ msgstr ""
 msgid "write it as: hold key seconds"
 msgstr ""
 
+msgid "write it as: login  or  login <character>"
+msgstr ""
+
 msgid ""
 "write it as: sell_collection  or  sell_collection fish (fish, ore or herb)"
 msgstr ""
@@ -6973,6 +7016,10 @@ msgid "{name} copy"
 msgstr ""
 
 msgid "{name} down ({n} so far)"
+msgstr ""
+
+msgid ""
+"{name} has more than one signed-out game; close the extras or log in first"
 msgstr ""
 
 msgid ""
@@ -7331,7 +7378,7 @@ msgstr ""
 msgid "{where} failed: {err} (carrying on)"
 msgstr ""
 
-msgid "{who} isn't logged in to a game that Uncle Farmer sees"
+msgid "{who} isn't logged in to one available game"
 msgstr ""
 
 msgid "{who}'s game is busy with {what}"

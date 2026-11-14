@@ -76,6 +76,10 @@ DEV_VERSION = re.compile(r"^\d+\.\d+\.\d+-dev\.\d+$")
 CHANNELS = ("master", "dev")
 DEFAULT_CHANNEL = "master"
 EXE = "UncleFarmer.exe"
+# In the native front door (native/bootstrap.c). A copy older than the two-exe layout has its Nuitka
+# app as UncleFarmer.exe instead; the first update into the new layout puts the front door there.
+LAUNCHER_MARKER = b"UNCLEFARMER-NATIVE-LAUNCHER-1"
+LAUNCHER_SECONDS = 60.0
 BUILD_FILE = "build.json"   # beside the exe in a CI build: which build this copy is
 UPDATE = os.path.join(paths.APP, "update")
 NEW = os.path.join(UPDATE, "new")
@@ -1129,6 +1133,10 @@ def apply(app: str, src: str, log: Callable[[str], None], *, deadline: float | N
     try:
         with recovery.locked(app):
             _apply_locked(os.path.abspath(app), src, log, deadline=deadline)
+            durable = recovery.load(os.path.abspath(app))
+            if durable and durable["state"] == "COMMITTED":
+                # only after the commit: a rolled-back copy has no UncleFarmerApp.exe for a front door to start
+                _migrate_launcher(os.path.abspath(app), src, log)
     except recovery.RecoveryError as error:
         raise UpdateError(str(error)) from error
 
@@ -1189,6 +1197,47 @@ def _apply_locked(app: str, src: str, log: Callable[[str], None], *, deadline: f
                 recovery.cleanup(app, durable)
             except OSError as error:
                 log("temporary update files retained at %s: %s" % (work, error))
+
+
+def is_launcher(path: str) -> bool:
+    """Whether this exe is the native front door (not an older copy's Nuitka app)."""
+    try:
+        with open(path, "rb") as f:
+            return LAUNCHER_MARKER in f.read()
+    except OSError:
+        return False
+
+
+def _migrate_launcher(app: str, src: str, log: Callable[[str], None]) -> None:
+    """Put the release's front door in place of an older copy's Nuitka UncleFarmer.exe, once.
+
+    The transactional install never touches UncleFarmer.exe (it is protected, so a running front door
+    is never replaced). A copy from before the two-exe layout would keep its old app there and start
+    it again: the old code, with the shortcut and the restart both pointing at it."""
+    installed, shipped = os.path.join(app, EXE), os.path.join(src, EXE)
+    if is_launcher(installed) or not is_launcher(shipped):
+        return
+    _safe_entry(installed, app)
+    staged = os.path.join(app, recovery.HERE, "launcher-%s.tmp" % secrets.token_hex(8))
+    recovery.safe(staged, app)
+    shutil.copyfile(shipped, staged)
+    recovery.flush(staged)
+    deadline = time.monotonic() + LAUNCHER_SECONDS
+    try:
+        while True:
+            try:
+                os.replace(staged, installed)       # one same-volume rename over the old exe
+                break
+            except PermissionError:
+                if time.monotonic() >= deadline:
+                    raise UpdateError("the old UncleFarmer.exe stayed in use; the update is installed, "
+                                      "but start UncleFarmerApp.exe until the next update") from None
+                time.sleep(0.2)
+    finally:
+        if os.path.exists(staged):
+            os.remove(staged)
+    recovery.flush(installed)
+    log("the native UncleFarmer.exe front door replaced the old app executable")
 
 
 def _copier_app(src: str) -> str | None:

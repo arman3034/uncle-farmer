@@ -154,6 +154,22 @@ def test_same_id_on_two_servers_never_shares_a_last_run() -> None:
     assert settings.last_run_of(app, on_s2) is None
 
 
+def test_a_connected_character_remembers_its_saved_account_in_its_profile(tmp_path: Path,
+                                                                            monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(paths, "PROFILES", str(tmp_path))
+    first = settings.character_profile("First", 1, "S1")
+    second = settings.character_profile("Second", 2, "S1")
+    assert settings.remember_character_account(first, "account@example.com")
+    assert not settings.remember_character_account(first, "account@example.com")
+    assert settings.remember_character_account(second, "account@example.com")
+    assert settings.automatic_login_profiles() == [(first, "account@example.com"), (second, "account@example.com")]
+
+
+def test_automatic_login_requires_a_confirmed_character_identity() -> None:
+    with pytest.raises(ValueError, match="no game id"):
+        settings.remember_character_account("Hero", "account@example.com")
+
+
 def test_a_locked_settings_file_is_moved_aside_and_the_save_goes_on(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "_unreadable", set[str]())
     p = tmp_path / "settings.json"
@@ -210,7 +226,8 @@ def test_character_settings_export_round_trips_choices_but_not_game_facts(tmp_pa
                                                                           monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(paths, "PROFILES", str(tmp_path / "profiles"))
     original = dict(settings.PROFILE_DEFAULTS, attack_gap=0.7, bag_rules={"red potion": {"action": "keep", "keep": 4}},
-                    scan={"class": "Hunter", "pets": ["Source pet"]}, hearth_home="Source town", future_key=7)
+                    scan={"class": "Hunter", "pets": ["Source pet"]}, hearth_home="Source town",
+                    login_email="source@example.com", future_key=7)
     settings.save_profile("Source", original)
     export = tmp_path / "source.unclefarmer-profile.json"
     settings.export_profile("Source", str(export))
@@ -219,7 +236,7 @@ def test_character_settings_export_round_trips_choices_but_not_game_facts(tmp_pa
     assert imported["attack_gap"] == 0.7
     assert imported["bag_rules"] == {"red potion": {"action": "keep", "keep": 4}}
     assert imported["future_key"] == 7
-    assert "scan" not in imported and "hearth_home" not in imported
+    assert "scan" not in imported and "hearth_home" not in imported and "login_email" not in imported
 
 
 def test_character_settings_import_keeps_destination_game_facts(tmp_path: Path,

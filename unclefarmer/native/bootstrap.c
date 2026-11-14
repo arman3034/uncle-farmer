@@ -11,6 +11,8 @@
 #include <stdio.h>
 
 #define CAP 32768
+/* updater.LAUNCHER_MARKER: how an update tells this front door from an older copy's Nuitka exe. */
+__attribute__((used)) static const char launcher_marker[] = "UNCLEFARMER-NATIVE-LAUNCHER-1";
 static wchar_t root[CAP], path[CAP], command[CAP * 2];
 
 static int safe_path(const wchar_t *value) {

@@ -235,6 +235,8 @@ class ProfileDialog(Dialog):
     # ------------------------------------------------------------ pages
     def overview_page(self, nb: wx.Notebook) -> None:
         panel, box = page(nb, _("Overview"))
+        labeled(panel, box, _("Saved account email:"),
+                lambda w: wx.TextCtrl(w, value=self.p.get("login_email", ""), style=wx.TE_READONLY))
         self.known = labeled(panel, box, _("What the bot knows about this character:"),
                              lambda w: wx.TextCtrl(w, style=wx.TE_MULTILINE | wx.TE_READONLY, size=wx.Size(-1, 200)), 1)
         buttons(panel, box, (_("S&can now"), self.on_scan))

@@ -15,6 +15,17 @@ from ..common import error, first_selected, select_row
 from .base import SNAP_FRESH, FrameParts, Game, duration_text, out_of, profile_of, saved_item
 from typing import Any
 
+UNAVAILABLE_RETRY = 15.0   # seconds between quiet checks of an agent that didn't answer the last refresh
+
+
+def _answers(pid: int) -> bool:
+    """Whether this game's agent answers now: one short ping, no list rebuild."""
+    try:
+        with AgentLink(pid=pid, timeout=1) as a:
+            return a.send("ping") == "pong"
+    except (AgentError, OSError, ValueError):
+        return False
+
 
 class GamesMixin(FrameParts):
     # ------------------------------------------------------------ game and status
@@ -57,6 +68,14 @@ class GamesMixin(FrameParts):
             return
         old = self.selected_pid()
         self.games = games()
+        advertised = {pid: (port, secret) for port, pid, secret in agents()}
+        confirmed = {pid for pid, _name, _where in self.games}
+        # A crashed game can leave its port record behind and Windows can later reuse its PID.
+        # Do not make poll() refresh recursively for that record. A restarted agent has a new
+        # port or secret, so poll() will immediately notice it again; a live game that was only
+        # slow to answer is pinged again every UNAVAILABLE_RETRY seconds (poll), so it comes back.
+        self.unavailable_agents = {pid: record for pid, record in advertised.items() if pid not in confirmed}
+        self.unavailable_checked = self.clock.time()
         # a game whose bot is still running stays in the list even if it didn't answer just now
         listed = {g[0] for g in self.games}
         for pid, run in self.runs.items():
@@ -122,6 +141,13 @@ class GamesMixin(FrameParts):
                 s = a.json("mem")
                 if jsonio.is_object(s) and s.get("ok"):
                     s["_server"] = server_name(a)
+                    account: object = {}
+                    try:
+                        account = jsonio.loads(a.send("loginaccount"))
+                    except ValueError:
+                        pass
+                    if jsonio.is_object(account) and account.get("ok") and isinstance(account.get("email"), str):
+                        s["_account"] = account["email"]
                     return s
                 return None
         except (AgentError, OSError, ValueError):
@@ -164,10 +190,16 @@ class GamesMixin(FrameParts):
         if self.destroyed:
             return
         # a client opened or closed since the list was made: remake it (port files only, cheap)
-        live = {a[1] for a in agents()} | set(self.runs)
+        live = {pid for port, pid, secret in agents()
+                if self.unavailable_agents.get(pid) != (port, secret)} | set(self.runs)
         if live != {g[0] for g in self.games}:
             self.refresh_games()
             return
+        if self.unavailable_agents and self.clock.time() - self.unavailable_checked >= UNAVAILABLE_RETRY:
+            self.unavailable_checked = self.clock.time()
+            if any(_answers(pid) for pid in self.unavailable_agents):
+                self.refresh_games()
+                return
         running = len(self.runs)
         self.sync_pause()
         self.label_games()
@@ -223,6 +255,12 @@ class GamesMixin(FrameParts):
             self.label_games()
         elif game[1]:
             profile = game[1]       # retain the server label gathered with this game's first reading
+        account = s.get("_account")
+        if profile and isinstance(account, str):
+            try:
+                settings.remember_character_account(profile, account)
+            except (OSError, ValueError) as e:
+                applog.write("couldn't remember the saved account for %s: %r" % (profile, e), "WARNING")
         if not run:
             self.auto_scan_async(profile or me["name"], pid)     # never while the bot runs: it has the keyboard
             values["activity"] = _("Ready")

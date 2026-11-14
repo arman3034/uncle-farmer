@@ -569,7 +569,7 @@ def test_the_editor_turns_its_fields_into_a_schedule() -> None:
     (Editor(schedule.WEEKLY), "Tick at least one day"),
     (Editor(schedule.ONCE, date="2026-11-04", time="11:00"), "already passed"),
     (Editor(schedule.ONCE, date="next week"), "year-month-day"),
-    (Editor(schedule.DAILY, who="  "), "character's name"),
+    (Editor(schedule.DAILY, who="  "), "Choose a character"),
     (Editor(schedule.DAILY, what=5), "Choose a plan or script"),
 ])
 def test_the_editor_refuses_what_can_t_run(editor: Editor, says: str) -> None:

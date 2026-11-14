@@ -12,7 +12,7 @@ import threading
 import types
 from types import SimpleNamespace
 from collections.abc import Callable
-from typing import Any, ClassVar
+from typing import Any, ClassVar, cast
 
 import pytest
 
@@ -20,7 +20,7 @@ wx = pytest.importorskip("wx")
 
 from unclefarmer import chat, messages, settings, speech, stats, tones  # noqa: E402
 from unclefarmer.gui import main  # noqa: E402
-from unclefarmer.gui.mainparts import results as results_part, runs as runs_part, talk as talk_part  # noqa: E402
+from unclefarmer.gui.mainparts import games as games_part, results as results_part, runs as runs_part, talk as talk_part  # noqa: E402
 from unclefarmer.gui.mainparts.base import LOG_LIMIT, SNAP_FRESH  # noqa: E402
 
 from conftest import returning, stand_in, Clock  # noqa: E402
@@ -69,6 +69,21 @@ class Widget:
     def SetItem(self, i: int, col: int, text: str) -> None:
         self.items[(i, col)] = text
 
+    def DeleteAllItems(self) -> None:
+        self.items.clear()
+
+    def InsertItem(self, i: int, text: str) -> None:
+        self.items[(i, 0)] = text
+
+    def SetItemState(self, i: int, _state: int, _mask: int) -> None:
+        self.selection = i
+
+    def Focus(self, _i: int) -> None:
+        pass
+
+    def EnsureVisible(self, _i: int) -> None:
+        pass
+
 
 class Win:
     """A stand-in main window. Whatever it doesn't define is MainFrame's own method, bound here."""
@@ -77,6 +92,7 @@ class Win:
         self.clock = Clock()
         self.s = dict(s or {})
         self.games = list(games)
+        self.unavailable_agents: dict[int, tuple[int, str]] = {}
         self.runs = dict(runs or {})
         self.messengers: dict[int, Any] = {}       # a game's messenger, or the test's stand-in for one
         self.chats: dict[int, Any] = {}
@@ -530,3 +546,101 @@ def test_an_empty_game_folder_setting_is_filled_in_from_the_installed_agent(monk
     assert editing.EditingMixin.remember_game_folder(frame) == "D:/Game"
     assert frame.s["game_folder"] == "D:/Game" and saved == [{"game_folder": "D:/Game"}]
     assert editing.EditingMixin.remember_game_folder(frame) == "D:/Game" and len(saved) == 1   # once
+
+
+def test_automatic_login_opens_only_one_client_then_uses_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A schedule tick cannot make a new window every time the game is still loading."""
+    opened: list[None] = []
+    frame = cast(Any, types.SimpleNamespace(games=[], runs={}, pending_logins={}))
+    frame.refresh_games = lambda: None
+    frame.open_client_for_login = lambda: opened.append(None) or None
+    monkeypatch.setattr(runs_part.time, "monotonic", lambda: 10.0)
+
+    first = runs_part.RunsMixin.automatic_login_window(frame, "Hero\x1fS1\x1f1")
+    second = runs_part.RunsMixin.automatic_login_window(frame, "Hero\x1fS1\x1f1")
+    frame.games = [(44, None, None)]
+    ready = runs_part.RunsMixin.automatic_login_window(frame, "Hero\x1fS1\x1f1")
+
+    assert first == (None, "opening a game for Hero - S1")
+    assert second == first and opened == [None]
+    assert ready == (44, "") and frame.pending_logins == {}
+
+
+def test_a_stale_agent_record_does_not_make_the_game_refresh_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An old port file with a reused PID must not prevent the main window from appearing."""
+    reads: list[None] = []
+    def no_games() -> list[tuple[int, str | None, str | None]]:
+        reads.append(None)
+        return []
+
+    monkeypatch.setattr(games_part, "games", no_games)
+    def agent_rows() -> list[tuple[int, int, str]]:
+        return [(9000, 42, "old")]
+
+    monkeypatch.setattr(games_part, "agents", agent_rows)
+    window = Win()
+
+    window.refresh_games()
+    window.poll()
+
+    assert reads == [None]
+    assert window.unavailable_agents == {42: (9000, "old")}
+
+
+def test_a_start_from_inside_a_game_runs_the_last_plans_own_steps(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The last-run swap must read that plan's text, never run the selected plan under its name."""
+    made: list[tuple[str, str]] = []
+
+    class Run:
+        def __init__(self, text: str, title: str, pid: int, *a: object, **k: object) -> None:
+            made.append((text, title))
+            self.title = title
+
+        def start(self) -> None:
+            pass
+
+    def read(item: Any, profile: str | None) -> tuple[str, str | None, None]:
+        return "steps of %s" % item[1], profile, None
+
+    monkeypatch.setattr(runs_part, "Run", Run)
+    monkeypatch.setattr(runs_part, "run_text_and_profile", read)
+    def saved(*args: object) -> bool:
+        return True
+    monkeypatch.setattr(runs_part, "save_file", saved)
+    frame: Any = SimpleNamespace(
+        s={"last_runs": {"Ali": "plan:wolves"}}, games=[(1, "Ali", ""), (2, "Sara", "")], runs={}, last_line={},
+        items=[("plan", "turkey"), ("plan", "wolves")], clock=Clock(), said=[],
+        selected_item=lambda: None, selected_pid=lambda: 2, label_games=lambda: None, update_buttons=lambda: None,
+        poll=lambda: None, on_log=None, on_done=None, locate=None, last_seen=None)
+    frame.say = frame.said.append
+    frame._item_for_game = types.MethodType(runs_part.RunsMixin._item_for_game, frame)
+
+    assert runs_part.RunsMixin.start(frame, 1) == "Starting wolves."    # nothing selected: the last run
+    frame.selected_item = lambda: ("plan", "turkey")
+    frame.runs = {}
+    assert runs_part.RunsMixin.start(frame, 1) == "Starting wolves."    # another one selected
+    assert made == [("steps of wolves", "wolves"), ("steps of wolves", "wolves")]
+
+
+def test_a_game_that_was_slow_once_comes_back_to_the_list(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A live game that missed one refresh is pinged again later, not hidden until it restarts."""
+    listed: list[list[tuple[int, str | None, str | None]]] = [[], [(42, "Ali", "Town")]]
+    pinged: list[int] = []
+    monkeypatch.setattr(games_part, "games", lambda: listed.pop(0))
+    monkeypatch.setattr(games_part, "agents", lambda: [(9000, 42, "live")])
+    def answers(pid: int) -> bool:
+        pinged.append(pid)
+        return True
+    monkeypatch.setattr(games_part, "_answers", answers)
+    window: Any = Win()
+    window.refresh_games()
+    assert window.games == [] and window.unavailable_agents == {42: (9000, "live")}
+
+    window.poll = types.MethodType(games_part.GamesMixin.poll, window)
+    window.SetStatusText = lambda text: None  # pyright: ignore[reportUnknownLambdaType]
+    window.snap_busy = True                               # no game reading in this test
+    window.poll()                                         # too soon: no ping, no rebuild
+    assert pinged == []
+    window.clock.advance(games_part.UNAVAILABLE_RETRY)
+    window.poll()
+    assert pinged == [42] and window.games == [(42, "Ali", "Town")] and window.unavailable_agents == {}

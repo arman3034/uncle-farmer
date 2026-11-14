@@ -380,6 +380,15 @@ public final class AgentTests {
         boolean[] guarded = {false};
         java.util.Set<String> mine = new java.util.HashSet<String>();
         eq(StateServer.handle("version", armed, mine, guarded), "mwagent " + StateServer.VERSION, "version");
+        check(StateServer.handle("loginaccount", armed, mine, guarded).startsWith("{\"ok\":"), "saved account query");
+        eq(StateServer.handle("autologin account@example.com 123", armed, mine, guarded),
+                "refused: send 'arm' first", "automatic login needs arm");
+        check(StateServer.handle("autologinstatus", armed, mine, guarded).startsWith("{\"ok\":"),
+                "automatic login status");
+        for (String sound : new String[] {"soundstatus", "sounds 0", "soundwatch off", "soundmute off", "soundlisten off"}) {
+            check(!StateServer.handle(sound, armed, mine, guarded).startsWith("unknown command"),
+                    "the Sound Silencer command stays: " + sound);
+        }
         eq(StateServer.handle("ping", armed, mine, guarded), "pong", "ping");
         eq(StateServer.handle("voicefix off", armed, mine, guarded), "unknown", "no voice player loaded: nothing to switch");
         eq(StateServer.handle("frobnicate", armed, mine, guarded), "unknown command: frobnicate", "unknown");
@@ -399,6 +408,8 @@ public final class AgentTests {
         eq(StateServer.handle("discarddirectall 5", armed, mine, guarded), "refused: send 'arm' first",
                 "discarddirectall needs arm");
         eq(StateServer.handle("arm", armed, mine, guarded), "armed", "arm");
+        check(StateServer.handle("autologin account@example.com bad", armed, mine, guarded).contains("invalid character id"),
+                "automatic login validates the character id");
         eq(StateServer.handle("slot 1", armed, mine, guarded), "error: the attack page can't be read",
                 "slot without a game says so instead of throwing");
         eq(StateServer.handle("slot 11", armed, mine, guarded), "error: slot 1-10", "a key number, not a page-2 slot");

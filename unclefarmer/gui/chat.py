@@ -16,9 +16,10 @@ from typing import TYPE_CHECKING, Any, Literal
 
 import wx
 
-from .. import chat, nearby, settings, tones
+from .. import chat, chat_filters, nearby, settings, tones
 from ..i18n import _
-from .common import Dialog, Handler, labeled, ok_cancel, opens, page, tabs
+from .common import Dialog, Handler, buttons, labeled, ok_cancel, opens, page, save_file, tabs
+from .chat_filters import FilterManager
 
 if TYPE_CHECKING:
     from .mainparts.base import FrameParts
@@ -82,6 +83,9 @@ class ChatFrame(wx.Frame):
         super().__init__(host, title=_("Chat - {name}", name=character or _("game")), size=wx.Size(640, 600))
         self.host, self.pid, self.character = host, pid, character
         self.s = host.s
+        self.filters = chat_filters.load(self.s)
+        self.replies: dict[bool, chat.Line] = {}
+        self.reply_controls: dict[bool, tuple[wx.StaticText, wx.Button]] = {}
         self.ch_keys = [k for k, _n in channel_buffers()]
         self.ch_names = dict(channel_buffers())
         self.unread = {k: 0 for k in self.ch_keys}
@@ -107,6 +111,7 @@ class ChatFrame(wx.Frame):
         box.Add(self.ch_label, 0, wx.TOP, 8)
         self.ch_text = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
         box.Add(self.ch_text, 0, wx.EXPAND | wx.TOP, 4)
+        self.reply_bar(panel, box, False)
         self.buttons(panel, box)
 
         panel, box = page(self.nb, _("Private chats"))
@@ -116,6 +121,7 @@ class ChatFrame(wx.Frame):
         box.Add(self.pm_label, 0, wx.TOP, 8)
         self.pm_text = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
         box.Add(self.pm_text, 0, wx.EXPAND | wx.TOP, 4)
+        self.reply_bar(panel, box, True)
         # An editable list, not a text box with the system's autocomplete: that one was set up
         # again on every focus (with a game reading on the window's thread), and the private chat
         # tab got stuck there until Escape closed the window.
@@ -133,6 +139,8 @@ class ChatFrame(wx.Frame):
         # Enter (or a double click) on a voice message plays it
         self.ch_list.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self.play())
         self.pm_list.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self.play())
+        self.ch_list.Bind(wx.EVT_CONTEXT_MENU, lambda e: self.message_menu(e, False))
+        self.pm_list.Bind(wx.EVT_CONTEXT_MENU, lambda e: self.message_menu(e, True))
         self.new_chat.Bind(wx.EVT_TEXT_ENTER, lambda e: self.start_chat())
         self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_tab)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key)
@@ -155,6 +163,103 @@ class ChatFrame(wx.Frame):
             if label == _("Record &voice"):
                 self.record_buttons.append(b)
         box.Add(row, 0, wx.TOP, 10)
+        buttons(panel, box, (opens(_("&Chat filters")), lambda e: self.manage_filters()))
+
+    def reply_bar(self, panel: wx.Window, box: wx.Sizer, private: bool) -> None:
+        row = wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(panel, label="")
+        cancel = wx.Button(panel, label=_("Cancel &reply"))
+        cancel.Bind(wx.EVT_BUTTON, lambda e: self.cancel_reply(private))
+        row.Add(label, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
+        row.Add(cancel)
+        box.Add(row, 0, wx.EXPAND | wx.TOP, 4)
+        label.Hide()
+        cancel.Hide()
+        self.reply_controls[private] = label, cancel
+
+    def message_menu(self, evt: wx.ContextMenuEvent, private: bool) -> None:
+        control, lines = (self.pm_list, self.pm_lines) if private else (self.ch_list, self.ch_lines)
+        position = evt.GetPosition()
+        if position != wx.DefaultPosition:
+            i = control.HitTest(control.ScreenToClient(position))
+            if i == wx.NOT_FOUND:
+                return
+            control.SetSelection(i)
+        i = control.GetSelection()
+        if not 0 <= i < len(lines):
+            return
+        line = lines[i]
+        menu = wx.Menu()
+        try:
+            reply = menu.Append(wx.ID_ANY, _("&Reply"))
+            reply.Enable(bool(line.get("name")) and line["channel"] != chat.NOTICE)
+            menu.Bind(wx.EVT_MENU, lambda e: self.begin_reply(private, line), reply)
+            hide = menu.Append(wx.ID_ANY, _("Add to &filter list"))
+            hide.Enable(bool(line["text"].strip()))
+            menu.Bind(wx.EVT_MENU, lambda e: self.filter_message(line), hide)
+            control.PopupMenu(menu)
+        finally:
+            menu.Destroy()
+
+    def begin_reply(self, private: bool, line: chat.Line) -> None:
+        if not line.get("name") or line["channel"] == chat.NOTICE:
+            return
+        self.cancel_reply(private)
+        self.replies[private] = dict(line)
+        control = self.pm_text if private else self.ch_text
+        control.SetValue(chat_filters.reply_text(line["name"], control.GetValue()))
+        label, cancel = self.reply_controls[private]
+        label.SetLabel(_("Replying to {name}: {message}", name=line["name"], message=line["text"][:100]))
+        label.Wrap(500)
+        label.Show()
+        cancel.Show()
+        if not private:
+            self.label_channel_message()
+        else:
+            self.show_conversation()
+        self.Layout()
+        control.SetFocus()
+        control.SetInsertionPointEnd()
+
+    def cancel_reply(self, private: bool, *, clear_prefix: bool = True) -> None:
+        line = self.replies.pop(private, None)
+        control = self.pm_text if private else self.ch_text
+        if line and clear_prefix:
+            text = chat_filters.reply_text(line["name"], control.GetValue())
+            control.ChangeValue(text[len("@" + line["name"].strip().lstrip("@")):].lstrip())
+        for item in self.reply_controls[private]:
+            item.Hide()
+        if not private:
+            self.label_channel_message()
+        elif line:
+            self.show_conversation()
+        self.Layout()
+        if line:
+            control.SetFocus()
+
+    def filter_message(self, line: chat.Line) -> None:
+        rule = chat_filters.make_filter("exact", line["text"])
+        duplicate = next((r for r in self.filters if r.key() == rule.key()), None)
+        if duplicate:
+            rule = chat_filters.make_filter("exact", line["text"], id=duplicate.id)
+        if self.save_filters(chat_filters.add(self.filters, rule)):
+            self.host.say(_("Message added to the filter list."))
+
+    def save_filters(self, rules: list[chat_filters.Filter]) -> bool:
+        updated = dict(self.s, chat_filters=chat_filters.dump(rules))
+        if not save_file(self, settings.save_app, updated):
+            return False
+        self.s["chat_filters"] = updated["chat_filters"]
+        for frame in self.host.chat_windows.values():
+            frame.filters = list(rules)
+            frame.show_channel()
+            frame.show_conversation()
+        return True
+
+    def manage_filters(self) -> None:
+        with FilterManager(self, self.filters, self.feed, lambda line: line_text(line, clock=clock_of(self.s)),
+                           self.save_filters) as dialog:
+            dialog.ShowModal()
 
     def feed(self) -> chat.Feed | None:
         return self.host.chats.get(self.pid)
@@ -169,7 +274,8 @@ class ChatFrame(wx.Frame):
     def show_channel(self) -> None:
         k = self.channel_key()
         f = self.feed()
-        self.ch_lines = f.buffer(k) if f else []
+        self.ch_lines = [line for line in (f.buffer(k) if f else [])
+                         if not chat_filters.matching(self.filters, line["text"])]
         self.ch_list.Set([line_text(x, where=k == ALL, clock=clock_of(self.s)) for x in self.ch_lines])
         if self.ch_lines:
             self.ch_list.SetSelection(len(self.ch_lines) - 1)
@@ -188,6 +294,9 @@ class ChatFrame(wx.Frame):
     def channel_target(self) -> str:
         """The channel a line typed on the Channels tab goes to: the buffer's own, or in All the
         selected line's channel, else the last one used."""
+        reply = self.replies.get(False)
+        if reply and reply["channel"] in chat.CHANNEL_KEYS:
+            return reply["channel"]
         k = self.channel_key()
         if k in chat.CHANNEL_KEYS:
             return k
@@ -238,7 +347,8 @@ class ChatFrame(wx.Frame):
 
     def show_conversation(self) -> None:
         c = self.peer()
-        lines: list[chat.Line] = list(c["lines"]) if c else []
+        raw: list[chat.Line] = list(c["lines"]) if c else []
+        lines = [line for line in raw if not chat_filters.matching(self.filters, line["text"])]
         old = self.pm_lines
         if old and lines[:len(old)] == old and self.pm_list.GetCount() == len(old):
             # the same conversation, with new lines: add them and leave the reader where they are
@@ -256,6 +366,7 @@ class ChatFrame(wx.Frame):
         if c and self.on_private() and self.pm_unread.pop(c["key"], 0):
             self.people.SetString(self.people.GetSelection(), c["name"])
         set_label(self.pm_label, self.pm_text,
+                  _("Messa&ge to {where}:", where=self.replies[True]["peer"]) if True in self.replies else
                   _("Messa&ge to {where}:", where=c["name"]) if c else _("Messa&ge:"))
 
     def on_tab(self, evt: wx.BookCtrlEvent) -> None:
@@ -304,6 +415,8 @@ class ChatFrame(wx.Frame):
     # ---------------------------------------------------------------- arriving
     def add(self, line: chat.Line) -> None:
         """A new line from the feed (on the window's thread)."""
+        if chat_filters.matching(self.filters, line["text"]):
+            return
         if line["channel"] == chat.PRIVATE:
             key = chat.Feed.peer_key(line)
             self.started.pop(key, None)
@@ -335,6 +448,11 @@ class ChatFrame(wx.Frame):
         text = " ".join(box.GetValue().split())
         if not text:
             return
+        reply = self.replies.get(private)
+        if reply:
+            text = chat_filters.reply_text(reply["name"], text)
+            if text.strip() == ("@" + reply["name"].strip().lstrip("@")):
+                return
         f = self.feed()
         if f is None or f.unsupported:
             self.host.say(_("Chat needs the new agent in this game: restart the game."))
@@ -354,9 +472,11 @@ class ChatFrame(wx.Frame):
             self.host.say(_("That is longer than the game's 200 characters: it goes in {n} parts, "
                             "one every 2 seconds (3 on Global), as fast as the game allows.", n=n))
         box.SetValue("")
+        self.cancel_reply(private, clear_prefix=False)
 
     def send_private(self, f: chat.Feed, text: str) -> str | None:
-        c = self.peer()
+        reply = self.replies.get(True)
+        c: dict[str, Any] | None = {"name": reply["peer"], "id": reply.get("peer_id")} if reply else self.peer()
         if c is None:
             return _("Pick someone in People, or type a name or id in New chat first.")
         to = c.get("id") or f.id_of(c["name"])
@@ -453,6 +573,9 @@ class ChatFrame(wx.Frame):
             if self.recording:
                 self.cancel_recording()
                 self.host.say(_("Recording cancelled."))
+                return
+            if self.on_private() in self.replies:
+                self.cancel_reply(self.on_private())
                 return
             self.Close()
             return

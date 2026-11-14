@@ -14,6 +14,7 @@ from . import filelock, jsonio as json, paths
 from .i18n import _
 
 APP_DEFAULTS: dict[str, Any] = {
+    "chat_filters": [],        # visibility only: chat messages themselves are never saved
     "language": "en",
     "language_prompted": False,
     "game_folder": "",
@@ -203,6 +204,8 @@ Auto = str | float | int
 class AppSettings(BaseModel):
     """settings.json."""
     model_config = ConfigDict(extra="allow")
+
+    chat_filters: list[dict[str, Any]] = APP_DEFAULTS["chat_filters"]
 
     language: str = APP_DEFAULTS["language"]
     language_prompted: bool = APP_DEFAULTS["language_prompted"]

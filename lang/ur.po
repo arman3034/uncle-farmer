@@ -41,6 +41,9 @@ msgstr "&Supply shamil karein"
 msgid "&Add an item"
 msgstr "&Cheez shamil karein"
 
+msgid "&Add new filter"
+msgstr "Naya filter &shaamil karein"
+
 msgid "&Add where I stand"
 msgstr "Jahan khara hoon wahan &shamil karein"
 
@@ -92,6 +95,9 @@ msgstr "&Kirdaar:"
 msgid "&Chase monsters up to this many steps away (patrol loops):"
 msgstr "Monsters ka itne qadam door tak &peecha karein (patrol loops):"
 
+msgid "&Chat filters"
+msgstr "&Chat ke filters"
+
 msgid "&Check (F5)"
 msgstr "&Jaanch (F5)"
 
@@ -136,6 +142,9 @@ msgstr "&Jawab dene se pehle deri, kam az kam (seconds):"
 msgid "&Delete"
 msgstr "&Hataayein"
 
+msgid "&Delete filter"
+msgstr "Filter &hataayein"
+
 msgid "&Donation, once a day:"
 msgstr "&Chanda, din mein ek baar:"
 
@@ -145,8 +154,14 @@ msgstr "&Dungeon:"
 msgid "&Edit"
 msgstr "&Tabdeel"
 
+msgid "&Edit filter"
+msgstr "Filter &badlein"
+
 msgid "&Email address:"
 msgstr "&Email ka pata:"
+
+msgid "&Enabled"
+msgstr "&Chalu"
 
 msgid "&End:"
 msgstr "&Aakhir:"
@@ -165,6 +180,9 @@ msgstr "Animal Shed par gang ke breed beast ko &khilao"
 
 msgid "&File"
 msgstr "&File"
+
+msgid "&Filters:"
+msgstr "&Filters:"
 
 msgid "&Find the running game"
 msgstr "Chalti hui game &dhoondein"
@@ -402,11 +420,17 @@ msgstr "&Rukhsati se pehle jawab:"
 msgid "&Replies, one per line:"
 msgstr "&Jawab, har line mein ek:"
 
+msgid "&Reply"
+msgstr "&Jawab dein"
+
 msgid "&Rest before the next fight below HP (%):"
 msgstr "Agli ladai se pehle HP se neeche &aram (%):"
 
 msgid "&Restock supplies (game menu, Restock now)"
 msgstr "&Supplies dobara bharein (game menu, Restock now)"
+
+msgid "&Restore selected message"
+msgstr "Chuna hua paighaam &waapas dikhaayein"
 
 msgid "&Results"
 msgstr "&Nataij"
@@ -482,6 +506,9 @@ msgstr "&Supplies (tick wale dobara bhare jate hain):"
 
 msgid "&Target keys pick:"
 msgstr "&Target keys chunti hain:"
+
+msgid "&Test filter"
+msgstr "Filter &aazmaayein"
 
 msgid "&Then:"
 msgstr "&Phir:"
@@ -716,11 +743,17 @@ msgstr "Cheez shamil karein"
 msgid "Add at least one farming spot."
 msgstr "Kam az kam ek kheti ki jagah shamil karein."
 
+msgid "Add new filter"
+msgstr "Naya filter shaamil karein"
+
 msgid "Add our &own gang"
 msgstr "&Apna gang shamil karein"
 
 msgid "Add selected to Saved Sounds"
 msgstr "Chuna hua sound Mahfooz Sounds mein shamil karein"
+
+msgid "Add to &filter list"
+msgstr "&Filter fehrist mein shaamil karein"
 
 msgid "Added to the draft. Choose Save to apply."
 msgstr "Draft mein shamil ho gaya. Lagane ke liye Mahfooz karein."
@@ -902,6 +935,9 @@ msgstr "C&opy"
 msgid "Cancel"
 msgstr "Mansookh"
 
+msgid "Cancel &reply"
+msgstr "&Jawab mansookh karein"
+
 msgid "Caves"
 msgstr "Ghaar"
 
@@ -919,6 +955,9 @@ msgstr "Key badlein"
 
 msgid "Change target mode"
 msgstr "Target mode tabdeel karein"
+
+msgid "Changes apply when you save."
+msgstr "Tabdeeliyan mahfooz karne par laagu hongi."
 
 msgid "Changes are a draft until Save."
 msgstr "Mahfooz tak tabdeeliyan draft hain."
@@ -940,6 +979,9 @@ msgstr "Kirdaar:"
 
 msgid "Chat - {name}"
 msgstr "Chat - {name}"
+
+msgid "Chat filters"
+msgstr "Chat ke filters"
 
 msgid "Chat needs the new agent in this game: restart the game."
 msgstr "Chat ko is game mein naya agent chahiye: game restart karein."
@@ -966,6 +1008,9 @@ msgstr "City square chunein:"
 
 msgid "Choose a command to insert at the cursor:"
 msgstr "Cursor par shamil karne ke liye command chunein:"
+
+msgid "Choose a filter matching type."
+msgstr "Filter milaane ki qisam chunein."
 
 msgid "Choose a map."
 msgstr "Map chunein."
@@ -1081,6 +1126,9 @@ msgstr "&Developer se raabta"
 
 msgid "Contact the developer"
 msgstr "Developer se raabta"
+
+msgid "Contains text"
+msgstr "Matn shaamil hai"
 
 msgid "Contribution"
 msgstr "Hissa"
@@ -1232,6 +1280,9 @@ msgstr "Dev: development builds (sab se nayi tabdeeliyan, kharab ho sakti hain)"
 msgid "Ding"
 msgstr "Ding"
 
+msgid "Disabled"
+msgstr "Band"
+
 msgid "Discard item"
 msgstr "Cheez phenk dein"
 
@@ -1241,6 +1292,9 @@ msgstr "Kuch na karein"
 msgid ""
 "Do the day's chores at the start of the &first farming run each game day"
 msgstr "Har game din ke &pehle farming run ke shuru mein din ke kaam karein"
+
+msgid "Does not match"
+msgstr "Nahin milta"
 
 msgid "Don't donate"
 msgstr "Chanda na dein"
@@ -1320,11 +1374,20 @@ msgstr "Ab tak ki kamai: {n} arnebia (uthaye aur beche gaye)"
 msgid "East edge (x):"
 msgstr "Mashriqi kinara (x):"
 
+msgid "Edit filter"
+msgstr "Filter badlein"
+
 msgid "Edit schedule"
 msgstr "Schedule tabdeel karein"
 
 msgid "Elite"
 msgstr "Elite"
+
+msgid "Enable/&disable filter"
+msgstr "Filter chalu/&band karein"
+
+msgid "Enabled"
+msgstr "Chalu"
 
 msgid "End on a map &without monsters"
 msgstr "Aise map par khatam karein jahan &monsters na hon"
@@ -1364,6 +1427,9 @@ msgstr "Mansoobe ka naam likhein."
 
 msgid "Enter a sound ID between 1 and 99999."
 msgstr "1 se 99999 tak sound ID likhein."
+
+msgid "Enter filter text or a pattern."
+msgstr "Filter ka matn ya pattern likhein."
 
 msgid "Enter sound IDs, ranges, all, or off."
 msgstr "Sound IDs, ranges, all, ya off likhein."
@@ -1425,6 +1491,9 @@ msgid ""
 "Everything the buyer lists is sold, except what you keep in Character, Bag and supplies (an item set to Keep, or the number you keep of it). Before the gang's area the bot sells what it carries, since that half hour can't be left and taken up again."
 msgstr ""
 "Kharidaar ki list ki har cheez bech di jaati hai, siwaye us ke jo aap Character, Bag and supplies mein rakhte hain (Keep par rakhi cheez, ya uski woh tadaad jo aap rakhte hain). Gang ke ilaqe se pehle bot jo uthaye hue hai bech deta hai, kyun ke woh aadha ghanta chhor kar dobara shuru nahi kiya ja sakta."
+
+msgid "Exact message"
+msgstr "Bilkul wohi paighaam"
 
 msgid "Experience"
 msgstr "Tajurba"
@@ -1491,6 +1560,15 @@ msgid ""
 "Fills enabled supplies to their configured targets, even above their automatic refill thresholds."
 msgstr ""
 "Chalu supplies ko un ki muqarrar miktar tak bharta hai, chahe un ki khudkar refill ki had abhi na aayi ho."
+
+msgid "Filter list"
+msgstr "Filter fehrist"
+
+msgid "Filter settings"
+msgstr "Filter ki tarteeb"
+
+msgid "Filter text or &pattern:"
+msgstr "Filter ka matn ya &pattern:"
 
 msgid "Fishing"
 msgstr "Fishing (machhli)"
@@ -1746,6 +1824,14 @@ msgstr "Hearthstone hotkey"
 
 msgid "Here, next to you."
 msgstr "Yahan, tumhare paas."
+
+msgid "Hidden &messages and matching filters:"
+msgstr "Chhupe hue &paighaam aur milne waale filters:"
+
+msgid ""
+"Hidden messages stay in the current chat buffers. Only filter rules are saved."
+msgstr ""
+"Chhupe paighaam mojooda chat mein rehte hain. Sirf filter ke qawaneen mahfooz hote hain."
 
 msgid "Highest l&evel to make:"
 msgstr "Banane ka sab se &ooncha level:"
@@ -2141,11 +2227,27 @@ msgstr "Master"
 msgid "Master: stable releases"
 msgstr "Master: pakke (stable) releases"
 
+msgid "Match &case"
+msgstr "Barray aur chhotay haroof &milaayein"
+
+msgid "Matches"
+msgstr "Milta hai"
+
+msgid "Matching &type:"
+msgstr "Milaane ki &qisam:"
+
+msgid "Matching filters disabled. Save to restore these messages in chat."
+msgstr ""
+"Milne waale filters band hain. Paighaam chat mein waapas dikhaane ke liye mahfooz karein."
+
 msgid "Messa&ge to {where}:"
 msgstr "{where} ko pai&gham:"
 
 msgid "Messa&ge:"
 msgstr "Pai&gham:"
+
+msgid "Message added to the filter list."
+msgstr "Paighaam filter fehrist mein shaamil ho gaya."
 
 msgid "Mining"
 msgstr "Mining (kaan kani)"
@@ -2861,6 +2963,9 @@ msgstr "Mehfooz mansooba {name} badal dein? Yes chunne tak kuch nahi badlega."
 msgid "Reply lines"
 msgstr "Jawab ki lines"
 
+msgid "Replying to {name}: {message}"
+msgstr "{name} ko jawab: {message}"
+
 msgid "Rest &until HP (%):"
 msgstr "HP (%) tak &aaram karein:"
 
@@ -2897,6 +3002,11 @@ msgstr "Abhi restock karein: supplies apni muqarrar miktar par hain."
 
 msgid "Restocking supplies"
 msgstr "Supplies dobara bhar rahe hain"
+
+msgid ""
+"Restoring disables all matching rules, also restoring other messages they hide."
+msgstr ""
+"Waapas dikhaane par sab milne waale qawaneen band honge aur unke doosray chhupe paighaam bhi nazar aayenge."
 
 msgid "Results"
 msgstr "Nataij"
@@ -3479,6 +3589,12 @@ msgstr "Team leader ke paas teleport karein"
 
 msgid "Tell them now and then that I'm a&way"
 msgstr "Unhein waqt be waqt batayein ke main &ghair hazir hoon"
+
+msgid "Test &message:"
+msgstr "Aazmaaish ka &paighaam:"
+
+msgid "That filter already exists."
+msgstr "Yeh filter pehle se mojood hai."
 
 msgid ""
 "That is longer than the game's 200 characters: it goes in {n} parts, one every 2 seconds (3 on Global), as fast as the game allows."
@@ -4270,6 +4386,14 @@ msgstr "Jab us mein bot chal raha ho"
 msgid "While farming, go and share just before each half &hour, then come back"
 msgstr ""
 "Farming ke dauran har aadhe &ghante se zara pehle ja kar share karein, phir wapas aayein"
+
+msgid "Wildcard"
+msgstr "Wildcard"
+
+msgid ""
+"Wildcards: * matches any text; ? matches one character. Not a regular expression."
+msgstr ""
+"Wildcard: * kisi bhi matn se milta hai; ? aik harf se. Yeh regular expression nahin hai."
 
 msgid "With a heal skill, red &potions only below HP (%):"
 msgstr "Heal skill ke saath, red &potions sirf HP (%) se neeche:"
@@ -7131,6 +7255,12 @@ msgid ""
 "{menu}: not choosing by index ({why}) - choosing by the menu's text instead"
 msgstr ""
 "{menu}: qataar ke number se nahi chun raha ({why}) - is ke bajaye menu ki ibarat se chun raha hoon"
+
+msgid "{message} — hidden by {filters}"
+msgstr "{message} — in filters se chhupa hai: {filters}"
+
+msgid "{mode}: {pattern} ({state})"
+msgstr "{mode}: {pattern} ({state})"
 
 msgid "{m} min"
 msgstr "{m} min"

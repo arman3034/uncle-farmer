@@ -1672,6 +1672,44 @@ You can also open its list with **Alt+Down Arrow** and select someone from:
 
 A player's name works if they are visible or if you've messaged them during the current session. A game ID works for any player.
 
+### Replying to a message
+
+Right-click a message in either chat tab, or select it and press **Shift+F10**, then choose
+**Reply**. The message field gets the sender's `@username` prefix automatically. A reply preview
+shows the original sender and message. Type your response and press **Send** or **Enter**.
+
+The reply stays addressed to the original channel or private conversation even if new messages
+arrive or you select another conversation. Selecting Reply repeatedly does not duplicate the
+prefix. **Cancel reply** or **Escape** cancels reply mode and keeps the body of your draft. If
+sending fails, the draft and reply target remain available for retry. Messages without a sender,
+such as notices, cannot be replied to.
+
+### Chat filters
+
+Right-click a message and choose **Add to filter list** to hide messages with exactly that text.
+The rule is saved immediately. Matching uses the message body, without its sender, channel or
+displayed timestamp, and applies across all games' Chat windows.
+
+Open **Chat filters** from either chat tab to manage rules:
+
+- **Filter list** shows hidden messages still in the current game's chat buffers and the rules
+  responsible for hiding each one. **Restore selected message** disables all rules matching it;
+  other messages hidden by those rules also return when you save.
+- **Filter settings** lets you add, edit, delete, enable and disable rules. Changes in this
+  window apply only when you press **Save**; cancelling leaves the saved rules unchanged.
+- **Exact message** matches the complete body. **Contains text** matches a word, phrase or
+  sentence anywhere in it. **Wildcard** matches a complete pattern: `*` matches any number of
+  characters and `?` matches one character. For example, `*hello*` matches any body containing
+  `hello`. Patterns are not regular expressions.
+- **Match case** controls whether uppercase and lowercase differ. **Test filter** in the editor
+  checks a sample message without changing chat or saving the rule.
+
+Filtering changes only what the Chat message lists show. Delivery, voice messages, speech,
+notification tones and automatic private-message handling continue normally. No messages are
+deleted by a filter. Rules, including their text or patterns, are saved in application settings
+and survive restarts; the chat history itself remains in memory. Old messages that have already
+left the existing bounded chat buffers cannot be restored.
+
 ### Voice messages
 
 You can record and send voice messages from either tab using the buttons beside **Send**.

@@ -41,6 +41,9 @@ msgstr ""
 msgid "&Add an item"
 msgstr ""
 
+msgid "&Add new filter"
+msgstr ""
+
 msgid "&Add where I stand"
 msgstr ""
 
@@ -92,6 +95,9 @@ msgstr ""
 msgid "&Chase monsters up to this many steps away (patrol loops):"
 msgstr ""
 
+msgid "&Chat filters"
+msgstr ""
+
 msgid "&Check (F5)"
 msgstr ""
 
@@ -135,6 +141,9 @@ msgstr ""
 msgid "&Delete"
 msgstr ""
 
+msgid "&Delete filter"
+msgstr ""
+
 msgid "&Donation, once a day:"
 msgstr ""
 
@@ -144,7 +153,13 @@ msgstr ""
 msgid "&Edit"
 msgstr ""
 
+msgid "&Edit filter"
+msgstr ""
+
 msgid "&Email address:"
+msgstr ""
+
+msgid "&Enabled"
 msgstr ""
 
 msgid "&End:"
@@ -163,6 +178,9 @@ msgid "&Feed the gang's breed beast at the Animal Shed"
 msgstr ""
 
 msgid "&File"
+msgstr ""
+
+msgid "&Filters:"
 msgstr ""
 
 msgid "&Find the running game"
@@ -398,10 +416,16 @@ msgstr ""
 msgid "&Replies, one per line:"
 msgstr ""
 
+msgid "&Reply"
+msgstr ""
+
 msgid "&Rest before the next fight below HP (%):"
 msgstr ""
 
 msgid "&Restock supplies (game menu, Restock now)"
+msgstr ""
+
+msgid "&Restore selected message"
 msgstr ""
 
 msgid "&Results"
@@ -475,6 +499,9 @@ msgid "&Supplies (ticked ones are refilled):"
 msgstr ""
 
 msgid "&Target keys pick:"
+msgstr ""
+
+msgid "&Test filter"
 msgstr ""
 
 msgid "&Then:"
@@ -707,10 +734,16 @@ msgstr ""
 msgid "Add at least one farming spot."
 msgstr ""
 
+msgid "Add new filter"
+msgstr ""
+
 msgid "Add our &own gang"
 msgstr ""
 
 msgid "Add selected to Saved Sounds"
+msgstr ""
+
+msgid "Add to &filter list"
 msgstr ""
 
 msgid "Added to the draft. Choose Save to apply."
@@ -886,6 +919,9 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
+msgid "Cancel &reply"
+msgstr ""
+
 msgid "Caves"
 msgstr ""
 
@@ -902,6 +938,9 @@ msgid "Change key"
 msgstr ""
 
 msgid "Change target mode"
+msgstr ""
+
+msgid "Changes apply when you save."
 msgstr ""
 
 msgid "Changes are a draft until Save."
@@ -923,6 +962,9 @@ msgid "Character:"
 msgstr ""
 
 msgid "Chat - {name}"
+msgstr ""
+
+msgid "Chat filters"
 msgstr ""
 
 msgid "Chat needs the new agent in this game: restart the game."
@@ -948,6 +990,9 @@ msgid "Choose a city square:"
 msgstr ""
 
 msgid "Choose a command to insert at the cursor:"
+msgstr ""
+
+msgid "Choose a filter matching type."
 msgstr ""
 
 msgid "Choose a map."
@@ -1062,6 +1107,9 @@ msgid "Contact the &developer"
 msgstr ""
 
 msgid "Contact the developer"
+msgstr ""
+
+msgid "Contains text"
 msgstr ""
 
 msgid "Contribution"
@@ -1210,6 +1258,9 @@ msgstr ""
 msgid "Ding"
 msgstr ""
 
+msgid "Disabled"
+msgstr ""
+
 msgid "Discard item"
 msgstr ""
 
@@ -1218,6 +1269,9 @@ msgstr ""
 
 msgid ""
 "Do the day's chores at the start of the &first farming run each game day"
+msgstr ""
+
+msgid "Does not match"
 msgstr ""
 
 msgid "Don't donate"
@@ -1298,10 +1352,19 @@ msgstr ""
 msgid "East edge (x):"
 msgstr ""
 
+msgid "Edit filter"
+msgstr ""
+
 msgid "Edit schedule"
 msgstr ""
 
 msgid "Elite"
+msgstr ""
+
+msgid "Enable/&disable filter"
+msgstr ""
+
+msgid "Enabled"
 msgstr ""
 
 msgid "End on a map &without monsters"
@@ -1341,6 +1404,9 @@ msgid "Enter a name for the plan."
 msgstr ""
 
 msgid "Enter a sound ID between 1 and 99999."
+msgstr ""
+
+msgid "Enter filter text or a pattern."
 msgstr ""
 
 msgid "Enter sound IDs, ranges, all, or off."
@@ -1398,6 +1464,9 @@ msgstr ""
 
 msgid ""
 "Everything the buyer lists is sold, except what you keep in Character, Bag and supplies (an item set to Keep, or the number you keep of it). Before the gang's area the bot sells what it carries, since that half hour can't be left and taken up again."
+msgstr ""
+
+msgid "Exact message"
 msgstr ""
 
 msgid "Experience"
@@ -1462,6 +1531,15 @@ msgstr ""
 
 msgid ""
 "Fills enabled supplies to their configured targets, even above their automatic refill thresholds."
+msgstr ""
+
+msgid "Filter list"
+msgstr ""
+
+msgid "Filter settings"
+msgstr ""
+
+msgid "Filter text or &pattern:"
 msgstr ""
 
 msgid "Fishing"
@@ -1712,6 +1790,13 @@ msgid "Hearthstone hotkey"
 msgstr ""
 
 msgid "Here, next to you."
+msgstr ""
+
+msgid "Hidden &messages and matching filters:"
+msgstr ""
+
+msgid ""
+"Hidden messages stay in the current chat buffers. Only filter rules are saved."
 msgstr ""
 
 msgid "Highest l&evel to make:"
@@ -2091,10 +2176,25 @@ msgstr ""
 msgid "Master: stable releases"
 msgstr ""
 
+msgid "Match &case"
+msgstr ""
+
+msgid "Matches"
+msgstr ""
+
+msgid "Matching &type:"
+msgstr ""
+
+msgid "Matching filters disabled. Save to restore these messages in chat."
+msgstr ""
+
 msgid "Messa&ge to {where}:"
 msgstr ""
 
 msgid "Messa&ge:"
+msgstr ""
+
+msgid "Message added to the filter list."
 msgstr ""
 
 msgid "Mining"
@@ -2777,6 +2877,9 @@ msgstr ""
 msgid "Reply lines"
 msgstr ""
 
+msgid "Replying to {name}: {message}"
+msgstr ""
+
 msgid "Rest &until HP (%):"
 msgstr ""
 
@@ -2810,6 +2913,10 @@ msgid "Restock now: supplies are at their configured targets."
 msgstr ""
 
 msgid "Restocking supplies"
+msgstr ""
+
+msgid ""
+"Restoring disables all matching rules, also restoring other messages they hide."
 msgstr ""
 
 msgid "Results"
@@ -3374,6 +3481,12 @@ msgid "Teleport to the team leader"
 msgstr ""
 
 msgid "Tell them now and then that I'm a&way"
+msgstr ""
+
+msgid "Test &message:"
+msgstr ""
+
+msgid "That filter already exists."
 msgstr ""
 
 msgid ""
@@ -4093,6 +4206,13 @@ msgid "While a bot runs in it"
 msgstr ""
 
 msgid "While farming, go and share just before each half &hour, then come back"
+msgstr ""
+
+msgid "Wildcard"
+msgstr ""
+
+msgid ""
+"Wildcards: * matches any text; ? matches one character. Not a regular expression."
 msgstr ""
 
 msgid "With a heal skill, red &potions only below HP (%):"
@@ -6808,6 +6928,12 @@ msgstr ""
 
 msgid ""
 "{menu}: not choosing by index ({why}) - choosing by the menu's text instead"
+msgstr ""
+
+msgid "{message} — hidden by {filters}"
+msgstr ""
+
+msgid "{mode}: {pattern} ({state})"
 msgstr ""
 
 msgid "{m} min"
